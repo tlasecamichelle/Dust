@@ -1,0 +1,58 @@
+
+import dustysn
+import inspect
+
+#print out available functions or help documentation for dustysn
+print(dir(dustysn))
+help(dustysn)
+
+#inspecting what functions and stuff is inside each module
+import dustysn.model
+import dustysn.plot
+import dustysn.utils
+
+print("Model contents:", [x for x in dir(dustysn.model) if not x.startswith('_')])
+print("Plot contents:", [x for x in dir(dustysn.plot) if not x.startswith('_')])
+print("Utils contents:", [x for x in dir(dustysn.utils) if not x.startswith('_')])
+
+#checking how dustysn.model.import_data expects data to be formatted, for later input of 2 epochs
+import dustysn.model as dm
+import os
+
+print("Contents of dust folder:", os.listdir(os.path.join(dm.data_dir, 'dust')))
+
+
+#what columns, type of table? 
+import dustysn.model as dm
+import inspect
+
+print(inspect.getsource(dm.import_data)) 
+
+print(inspect.getsource(dm.fit_dust_model)) #what arguments?: takes in wavelengths, calculates dust opacity \kappa, multiplies by thermal BB "B" and runs optimizer for best-fit dust mass and temp
+
+# %%
+import dustysn.model as dm 
+
+### FIT EPOCH 1######
+print( "Fit Epoch 1")
+obs_wave_1, obs_flux_1, obs_flux_err_1, limits_1, filters_1, w_filt_1, t_filt_1 = dm.import_data('epoch1_2017eaw.txt') #only really need to parse wavelength, flux, error, and FILTER with dustysn data loader
+
+#passing obs into MCMC fitting formmat 
+results_ep1, samples_ep1 = dm.fit_dust_model(
+    obs_wave=obs_wave_1,
+    obs_flux=obs_flux_1,
+    obs_flux_err=obs_flux_err_1,
+    obs_limits=limits_1, 
+    redshift=0.00013, #redshift for SN2017eaw NGC 6946
+    object_name='SN2017eaw_Epoch1',
+    composition='silicate', #plotting the silicate-dominated late dust emission 
+    n_components=1, #fitting one temperature dust shell?, can expand to 2 to capture mIR 
+    n_walkers=20, #walkers used in pearson, copycat
+    n_steps=3000, #2000 to converge + 1000 to sample posterior 
+    burn_in=2000/3000, #fraction for above steps 
+    obs_wave_filters=w_filt_1,
+    obs_trans_filters=t_filt_1,
+    plot=True
+) 
+
+                                                                                               
